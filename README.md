@@ -4,24 +4,6 @@
 
 ## Repo auf GitHub veröffentlichen (für Jacqueline)
 
-```bash
-# 1. Im Projektordner: Git initialisieren
-git init
-git add .
-git commit -m "Initial commit: TeamHub starter"
-
-# 2. Neues Repository auf github.com anlegen
-#    → Repo-Name empfohlen: teamhub-starter
-#    → Sichtbarkeit: Public (Teilnehmer können es klonen ohne Login)
-
-# 3. Remote verbinden und pushen
-git remote add origin https://github.com/DEIN-USERNAME/teamhub-starter.git
-git branch -M main
-git push -u origin main
-```
-
----
-
 ## Teilnehmer klonen das Repo so (Tag 1, Setup-Block)
 
 ```bash
