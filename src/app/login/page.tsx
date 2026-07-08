@@ -1,10 +1,17 @@
 import { signIn } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
+import { AuthError } from 'next-auth'
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
   const session = await auth()
   if (session) redirect('/dashboard')
+
+  const { error } = await searchParams
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -13,14 +20,26 @@ export default async function LoginPage() {
           <h1 className="text-2xl font-bold text-gray-900">TeamHub</h1>
           <p className="text-gray-500 text-sm mt-1">Anmelden um fortzufahren</p>
         </div>
+        {error && (
+          <div className="bg-red-50 text-red-600 text-sm rounded-lg p-3 mb-4">
+            E-Mail oder Passwort ist falsch.
+          </div>
+        )}
         <form
           action={async (formData: FormData) => {
             'use server'
-            await signIn('credentials', {
-              email: formData.get('email'),
-              password: formData.get('password'),
-              redirectTo: '/dashboard',
-            })
+            try {
+              await signIn('credentials', {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                redirectTo: '/dashboard',
+              })
+            } catch (err) {
+              if (err instanceof AuthError) {
+                redirect('/login?error=CredentialsSignin')
+              }
+              throw err
+            }
           }}
           className="space-y-4"
         >
