@@ -45,18 +45,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Passwort', type: 'password' },
       },
       async authorize(credentials) {
-        // TODO a: Schritte 1-5 implementieren
-        return null // TODO: ersetzen
+        if (!credentials?.email || !credentials?.password) {
+    return null
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.email, credentials.email as string),
+  })
+
+  if (!user) {
+    return null
+  }
+
+  if (user.password !== credentials.password) {
+    return null
+  }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  }
       },
     }),
   ],
   callbacks: {
     jwt({ token, user }) {
       // TODO b
+       if (user) {
+    token.id = user.id
+    token.role = user.role
+  }
       return token
     },
     session({ session, token }) {
       // TODO c
+       if (session.user) {
+    session.user.id = token.id as string
+    session.user.role = token.role as 'admin' | 'member'
+  }
       return session
     },
   },

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import CreateTaskForm from './_components/create-task-form'
 import TaskList from './_components/task-list'
+import { unstable_cache } from 'next/cache'
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -25,6 +26,20 @@ import TaskList from './_components/task-list'
  *     den deine Server Actions invalidieren!
  */
 
+//* TO DO B
+async function getTasks(projectId: string) {
+  return unstable_cache(
+    async () => {
+      return db.query.tasks.findMany({
+        where: (t, { eq }) => eq(t.projectId, projectId),
+        orderBy: (t, { desc }) => [desc(t.createdAt)],
+      })
+    },
+    [`tasks-${projectId}`],
+    { tags: [`tasks-${projectId}`] }
+  )()
+}
+
 export default async function TasksPage({
   params,
 }: {
@@ -39,7 +54,8 @@ export default async function TasksPage({
   if (!project) notFound()
 
   // TODO b+c: Tasks laden (gecacht, Tag: `tasks-${id}`)
-  const allTasks: never[] = []
+ 
+  const allTasks = await getTasks(id)
 
   return (
     <div>

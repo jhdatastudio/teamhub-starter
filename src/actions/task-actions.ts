@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidateTag } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { db } from '@/db'
 import { tasks } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -30,15 +31,40 @@ export async function createTask(
 ): Promise<TaskFormState> {
   // TODO: extrahieren (title, description, projectId) → validieren
   //       → einfügen → revalidateTag(`tasks-${projectId}`)
-  return null // TODO: entfernen
+  const raw = {
+    title: formData.get('title'),
+    description: formData.get('description') || undefined,
+    projectId: formData.get('projectId'),
+  }
+
+  const result = createTaskSchema.safeParse(raw)
+
+  if (!result.success) {
+    return { error: result.error.flatten().fieldErrors }
+  }
+
+  await db.insert(tasks).values({
+    title: result.data.title,
+    description: result.data.description,
+    projectId: result.data.projectId,
+  })
+
+  revalidateTag(`tasks-${result.data.projectId}`)
+  redirect(`/projects/${result.data.projectId}`)
 }
+
+
 
 export async function deleteTask(id: string, projectId: string) {
   // TODO: löschen + projekt-spezifischen Tag invalidieren
+  await db.delete(tasks).where(eq(tasks.id, id))
+  revalidateTag(`tasks-${projectId}`)
+  redirect(`/projects/${projectId}`)
 }
 
+
 /**
- * AUFGABE 2.4-Vorbereitung — Status ändern
+ * -Vorbereitung — Status ändern
  * Diese Action wird an Tag 2 Nachmittag von useOptimistic aufgerufen.
  *   Tipp: db.update(tasks).set({ status }).where(eq(tasks.id, id))
  */
@@ -48,4 +74,6 @@ export async function updateTaskStatus(
   projectId: string
 ) {
   // TODO
+  await db.update(tasks).set({ status }).where(eq(tasks.id, id))
+  revalidateTag(`tasks-${projectId}`)
 }

@@ -32,7 +32,6 @@ export default async function LoginPage() {
               name="email"
               type="email"
               required
-              defaultValue="admin@teamhub.dev"
               className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -44,7 +43,6 @@ export default async function LoginPage() {
               name="password"
               type="password"
               required
-              defaultValue="admin123"
               className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

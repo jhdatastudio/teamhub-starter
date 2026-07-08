@@ -1,6 +1,7 @@
 import CreateProjectForm from './_components/create-project-form'
 import ProjectList from './_components/project-list'
 import { db } from '@/db'
+import { unstable_cache } from 'next/cache'
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -21,16 +22,49 @@ import { db } from '@/db'
  */
 
 /* 1.7*/ 
-async function getAllProjects() {
-  return db.query.projects.findMany({
-    orderBy: (p, { desc }) => [desc(p.createdAt)],
-  })
+// async function getAllProjects() {
+//  return db.query.projects.findMany({
+//    orderBy: (p, { desc }) => [desc(p.createdAt)],
+//  })
+//}
+
+// 2.6
+// const getAllProjects = unstable_cache(
+//  async () => {
+//    return db.query.projects.findMany({
+//      orderBy: (p, { desc }) => [desc(p.createdAt)],
+//    })
+//  },
+//  ['all-projects'],
+//  { tags: ['projects'] }
+//)
+
+async function getAllProjects(q?: string) {
+  return unstable_cache(
+    async () => {
+      return db.query.projects.findMany({
+        where: q ? (p, { ilike }) => ilike(p.name, `%${q}%`) : undefined,
+        orderBy: (p, { desc }) => [desc(p.createdAt)],
+      })
+    },
+    ['all-projects', q ?? ''],
+    { tags: ['projects'] }
+  )()
 }
 
+export default async function ProjectsPage( {
 
-export default async function ProjectsPage() {
+  //*2.B
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+  /* 1.7*/ 
   // TODO a: Projekte aus der Datenbank laden
-  const allProjects = await getAllProjects()
+  const allProjects = await getAllProjects(q)
+
+
 
   return (
     <div>

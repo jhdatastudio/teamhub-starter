@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
+import { auth } from '@/lib/auth'
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -33,7 +34,61 @@ import { db } from '@/db'
  *     Content-Disposition: attachment; filename="projekte.csv"
  */
 
-export async function GET(request: Request) {
+ //export async function GET(request: Request) {
   // TODO a-c implementieren
-  return NextResponse.json({ todo: 'Aufgabe 3.4' })
+ 
+  
+
+  // export async function GET(request: Request) {
+  // const session = await auth()
+   // if (!session) {
+   //   return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
+   // }
+
+   // const allProjects = await db.query.projects.findMany({
+    //  with: { tasks: true },
+   // })
+
+   // return NextResponse.json({
+    //  exportedAt: new Date().toISOString(),
+    //  count: allProjects.length,
+    //  projects: allProjects,
+   // })
+ // }
+
+
+
+ export async function GET(request: Request) {
+  const session = await auth()
+  if (!session) {
+    return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
+  }
+
+  const allProjects = await db.query.projects.findMany({
+    with: { tasks: true },
+  })
+
+  const { searchParams } = new URL(request.url)
+  const format = searchParams.get('format')
+
+  if (format === 'csv') {
+    const header = 'name,description,taskCount,createdAt'
+    const rows = allProjects.map((p) =>
+      [p.name, p.description ?? '', p.tasks.length, p.createdAt.toISOString()].join(',')
+    )
+    const csv = [header, ...rows].join('\n')
+
+    return new NextResponse(csv, {
+      headers: {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': 'attachment; filename="projekte.csv"',
+      },
+    })
+  }
+
+  return NextResponse.json({
+    exportedAt: new Date().toISOString(),
+    count: allProjects.length,
+    projects: allProjects,
+  })
 }

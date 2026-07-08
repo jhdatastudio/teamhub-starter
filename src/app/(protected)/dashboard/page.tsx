@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { db } from '@/db'
 import { projects, tasks } from '@/db/schema'
 import { count } from 'drizzle-orm'
-
+import { unstable_cache } from 'next/cache'
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -34,16 +34,30 @@ import { count } from 'drizzle-orm'
  *     und zeige sie unter den Statistik-Karten als Liste an.
  */
 
-//*1.6b*/
-async function getStats() {
-  const [projectCount] = await db.select({ value: count() }).from(projects)
-  const [taskCount] = await db.select({ value: count() }).from(tasks)
-  return {
-    projects: projectCount.value,
-    tasks: taskCount.value,
-  }
-}
+//*1.6b
+// async function getStats() {
+// const [projectCount] = await db.select({ value: count() }).from(projects)
+//   const [taskCount] = await db.select({ value: count() }).from(tasks)
+//   return {
+//     projects: projectCount.value,
+//     tasks: taskCount.value,
+//   }
+// }
+//
 
+
+const getStats = unstable_cache(
+  async () => {
+    const [projectCount] = await db.select({ value: count() }).from(projects)
+    const [taskCount] = await db.select({ value: count() }).from(tasks)
+    return {
+      projects: projectCount.value,
+      tasks: taskCount.value,
+    }
+  },
+  ['dashboard-stats'],
+  { tags: ['projects', 'tasks'], revalidate: 60 }
+)
 //*Bonus 1.B*/
 async function getRecentProjects() {
   return db.query.projects.findMany({

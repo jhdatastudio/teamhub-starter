@@ -13,7 +13,7 @@ type ProjectFormState = {
 
 /**
  * ═══════════════════════════════════════════════════════════
- * AUFGABE 2.2 — Server Action: Projekt erstellen (ca. 45 Min)
+ * Aufgabe 2.2 — Server Action: Projekt erstellen (ca. 45 Min)
  * ═══════════════════════════════════════════════════════════
  *
  * Ablauf einer Server Action mit Validierung:
@@ -76,11 +76,15 @@ redirect('/projects')
 }
 
 /**
- * AUFGABE 2.2b — Projekt löschen
+ * 2.2b — Projekt löschen
  *  - Lösche das Projekt mit der übergebenen id
  *    Tipp: db.delete(projects).where(eq(projects.id, id))
  *  - Cache invalidieren nicht vergessen!
  */
 export async function deleteProject(id: string) {
   // TODO
+  await db.delete(projects).where(eq(projects.id, id))
+  revalidateTag('projects')
+  redirect('/projects')
 }
+

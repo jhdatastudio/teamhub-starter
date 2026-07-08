@@ -61,8 +61,15 @@ if (process.env.NODE_ENV !== 'production') globalForDb.db = db
 //process.env.NODE_ENV !== 'production' && (globalForDb.db = db)
 //  
 // 
-// Wie && als Kurzform funktioniert: JS wertet && von links nach rechts aus und stoppt beim ersten false. Ist die linke Seite true (wir sind nicht in Production), wird die rechte Seite ausgeführt (die Zuweisung passiert). Ist die linke Seite false (wir sind in Production), wird die rechte Seite gar nicht erst angefasst.
-// Ich empfehle dir hier trotzdem die if-Variante — die ist lesbarer und genau das, was im Seminar auch so vermittelt wird (die &&-Variante ist eher ein "Insider-Move", den du kennen solltest, aber nicht unbedingt selbst schreiben musst) */
+// Wie && als Kurzform funktioniert: JS wertet && von links nach rechts aus 
+// und stoppt beim ersten false. Ist die linke Seite true (
+// wir sind nicht in Production), wird die rechte Seite ausgeführt 
+// (die Zuweisung passiert). Ist die linke Seite false 
+// (wir sind in Production), wird die rechte Seite gar nicht erst angefasst.
+// Ich empfehle dir hier trotzdem die if-Variante — die ist lesbarer und genau 
+// das, was im Seminar auch so vermittelt wird (die &&-Variante ist eher ein 
+// "Insider-Move", den du kennen solltest, aber nicht unbedingt selbst 
+// schreiben musst) */
 
 
 

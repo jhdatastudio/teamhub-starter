@@ -1,3 +1,5 @@
+import { unstable_cache } from 'next/cache'
+import { db } from '@/db'
 import SettingForm from './_components/setting-form'
 
 /**
@@ -11,11 +13,22 @@ import SettingForm from './_components/setting-form'
  *  c) Rendere pro Setting ein <SettingForm setting={...} />
  */
 
+const getSettings = unstable_cache(
+  async () => {
+    return db.query.settings.findMany({
+      orderBy: (s, { asc }) => [asc(s.key)],
+    })
+  },
+  ['all-settings'],
+  { tags: ['settings'] }
+)
+
+
 export default async function AdminSettingsPage() {
   // TODO a+b: Settings gecacht laden
-  const allSettings: never[] = []
+  const allSettings = await getSettings()
 
-  return (
+    return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Einstellungen</h1>
@@ -25,7 +38,9 @@ export default async function AdminSettingsPage() {
       </div>
 
       <div className="space-y-3 mb-6">
-        {/* TODO c: Settings-Liste rendern */}
+        {allSettings.map((setting) => (
+          <SettingForm key={setting.key} setting={setting} />
+        ))}
       </div>
 
       <div className="bg-white rounded-xl border p-6">

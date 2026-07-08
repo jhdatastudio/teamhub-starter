@@ -1,5 +1,6 @@
 import Nav from '@/components/nav'
-
+import { auth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 /**
  * ═══════════════════════════════════════════════════════════
  * AUFGABE 3.2a — Auth-Guard aktivieren (ca. 10 Min)
@@ -20,14 +21,18 @@ export default async function ProtectedLayout({
   children: React.ReactNode
 }) {
   // TODO a-c: Auth-Guard (erst an Tag 3!)
+const session = await auth()
 
-  // TODO d: Demo-User durch session.user ersetzen
-  const demoUser = { name: 'Demo (Tag 1+2)', email: 'demo@teamhub.dev', role: 'admin' }
-
+  if (!session) {
+    redirect('/login')
+  }
+  
+ //* TODO d: Demo-User durch session.user ersetzen
   return (
     <div className="min-h-screen bg-gray-50">
-      <Nav user={demoUser} />
+      <Nav user={session.user} />
       <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
     </div>
   )
 }
+

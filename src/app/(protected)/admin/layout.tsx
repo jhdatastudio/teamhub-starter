@@ -1,3 +1,6 @@
+import { auth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+
 /**
  * ═══════════════════════════════════════════════════════════
  * AUFGABE 3.2b — Rollenbasierter Zugriff / RBAC (ca. 10 Min)
@@ -22,6 +25,11 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   // TODO a-c: Admin-Guard
+  const session = await auth()
+
+  if (!session || session.user.role !== 'admin') {
+    redirect('/dashboard')
+  }
 
   return (
     <div>

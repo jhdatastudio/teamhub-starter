@@ -1,9 +1,12 @@
 'use server'
 
 import { revalidateTag } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { db } from '@/db'
 import { settings } from '@/db/schema'
 import { updateSettingSchema } from '@/lib/validations'
+import { auth } from '@/lib/auth'
+
 
 type SettingFormState = {
   error?: Record<string, string[]>
@@ -45,5 +48,31 @@ export async function upsertSetting(
   formData: FormData
 ): Promise<SettingFormState> {
   // TODO a-d implementieren
-  return null // TODO: ersetzen
+  const session = await auth()
+  if (session?.user?.role !== 'admin') {
+    redirect('/dashboard')
+}
+const raw = {
+    key: formData.get('key'),
+    value: formData.get('value'),
+  }
+
+  const result = updateSettingSchema.safeParse(raw)
+  if (!result.success) {
+    return { error: result.error.flatten().fieldErrors }
+  }
+
+  await db
+    .insert(settings)
+    .values({
+      key: result.data.key,
+      value: result.data.value,
+    })
+    .onConflictDoUpdate({
+      target: settings.key,
+      set: { value: result.data.value, updatedAt: new Date() },
+    })
+
+  revalidateTag('settings')
+  return { success: true }
 }

@@ -2,6 +2,7 @@
 
 import { deleteTask, updateTaskStatus } from '@/actions/task-actions'
 import type { Task } from '@/db/schema'
+import { useOptimistic, useTransition } from 'react'
 
 const STATUS_LABELS = {
   todo: 'Offen',
@@ -51,6 +52,13 @@ export default function TaskList({
   projectId: string
 }) {
   // TODO a+b: useOptimistic + useTransition einrichten
+  const [optimisticTasks, setOptimisticStatus] = useOptimistic(
+  tasks,
+  (state, { id, status }: { id: string; status: 'todo' | 'in_progress' | 'done' }) =>
+    state.map((task) => (task.id === id ? { ...task, status } : task))
+)
+
+const [, startTransition] = useTransition()
 
   if (tasks.length === 0) {
     return (
@@ -63,7 +71,7 @@ export default function TaskList({
   return (
     <div className="space-y-2">
       {/* TODO c: optimisticTasks statt tasks rendern */}
-      {tasks.map((task) => (
+      {optimisticTasks.map((task) => (
         <div key={task.id} className="bg-white rounded-xl border p-4">
           <div className="flex justify-between items-start gap-2">
             <p className="font-medium text-gray-900 text-sm">{task.title}</p>
@@ -80,10 +88,15 @@ export default function TaskList({
             {(['todo', 'in_progress', 'done'] as const).map((s) => (
               <button
                 key={s}
-                onClick={() => {
+                
                   // TODO d: startTransition + setOptimisticStatus + Server Action
-                  updateTaskStatus(task.id, s, projectId)
-                }}
+                 onClick={() => {
+                    startTransition(async () => {
+                      setOptimisticStatus({ id: task.id, status: s })
+                      await updateTaskStatus(task.id, s, projectId)
+                    })
+                  }}
+
                 className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
                   task.status === s
                     ? STATUS_COLORS[s] + ' font-semibold ring-1 ring-current'
