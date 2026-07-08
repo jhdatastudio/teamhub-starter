@@ -38,6 +38,7 @@ import { eq } from 'drizzle-orm'
  */
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
